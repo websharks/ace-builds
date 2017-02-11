@@ -15168,12 +15168,13 @@ define("ace/mode/markdown_highlight_rules",["require","exports","module","ace/li
       return str.replace(inCharClass ? _escRegExp2 : _escRegExp1, '\\$&');
     }; // Escapes regex meta-characters.
 
-  var esc0NoVws = function (escapableChars, ungreedy) {
-    return '(?:[^' + escRegex(escapableChars, true) + '\\\\]|\\\\[^' + v + '])*' + (ungreedy ? '?' : '');
+  var m0EscNoVws = function (escapableChars, ungreedy) {
+    escapableChars = escRegex(escapableChars, true);
+    return '(?:[^' + v + escapableChars + '\\\\]|\\\\[' + escapableChars + '])*' + (ungreedy ? '?' : '');
   }; // An escaped (possibly 0-byte length) string w/o vertical whitespace.
 
-  var fcbStartTagr = '^[' + h + ']*(?:`{3,}|~{3,})[' + h + ']*%%tag%%(?:[' + h + ']*\\{' + esc0NoVws('{}') + '\\})?[' + h + ']*$',
-    fcbStart = '^[' + h + ']*(?:`{3,}|~{3,})(?:[' + h + ']*[^' + s + '{}]+)?(?:[' + h + ']*\\{' + esc0NoVws('{}') + '\\})?[' + h + ']*$',
+  var fcbStartTagr = '^[' + h + ']*(?:`{3,}|~{3,})[' + h + ']*%%tag%%(?:[' + h + ']*\\{' + m0EscNoVws('{}') + '\\})?[' + h + ']*$',
+    fcbStart = '^[' + h + ']*(?:`{3,}|~{3,})(?:[' + h + ']*[^' + s + '{}]+)?(?:[' + h + ']*\\{' + m0EscNoVws('{}') + '\\})?[' + h + ']*$',
     fcbEnd = '^[' + h + ']*(?:`{3,}|~{3,})[' + h + ']*$';
 
   function fenced_code_block(tag, prefix) {
@@ -15249,30 +15250,30 @@ define("ace/mode/markdown_highlight_rules",["require","exports","module","ace/li
         regex: '(`+)[^' + v + ']*?[^`]\\1'
       }, { // Abbreviation definition.
         token: ['text', 'constant.definition.abbr-id', 'text', 'string.other.abbr-desc'],
-        regex: '^([' + h + ']{0,3}\\*\\[)(' + esc0NoVws('[]') + ')(\\]:)(.*)?$'
+        regex: '^([' + h + ']{0,3}\\*\\[)(' + m0EscNoVws('[]') + ')(\\]:)(.*)?$'
       }, { // Footnote definition.
         token: ['text', 'constant.definition.footnote-id', 'text', 'string.other.footnote'],
         regex: '^([' + h + ']{0,3}\\[\\^)([0-9]+)(\\]:)(.*)?$'
       }, { // Link definition. This covers the "Title" being on a line below.
         token: ['text', 'constant.definition.link-id', 'text', 'text', 'string.other.url.underline.link-url', 'text', 'text', 'string.other.link-title', 'text', 'text'],
-        regex: '^([' + h + ']{0,3}\\[)(' + esc0NoVws('^[]') + ')(\\]:[' + h + ']*)(<)?([^' + s + '<>]*)(>)?(?:([' + s + ']+")([^' + v + '"]*)("))?([' + h + ']*)$'
+        regex: '^([' + h + ']{0,3}\\[)(' + m0EscNoVws('^[]') + ')(\\]:[' + h + ']*)(<)?([^' + s + '<>]*)(>)?(?:([' + s + ']+")([^' + v + '"]*)("))?([' + h + ']*)$'
       }, { // Footnote reference.
         token: ['text', 'constant.reference.footnote-id', 'text'],
         regex: '(\\[\\^)([0-9]+)(\\])'
       }, { // Link by reference (separately, so we can style it).
         token: ['text', 'string.other.link-text', 'text', 'constant.reference.link-id', 'text'],
-        regex: '(\\[)(' + esc0NoVws('[]') + ')(\\][' + h + ']*\\[)(' + esc0NoVws('[]') + ')(\\])'
+        regex: '(\\[)(' + m0EscNoVws('[]') + ')(\\][' + h + ']*\\[)(' + m0EscNoVws('[]') + ')(\\])'
       }, { // Link by url w/ image (separately, so we can style it).
         token: ['text', 'string.other.image-as-link-text', 'markup.attributes', 'text', 'string.other.url.underline.link-url', 'string.other.link-title', 'text', 'markup.attributes'],
         regex: '(\\[)' + // Opening bracket, which is allowed to contain an image inside it.
-          '(!\\[' + esc0NoVws('[]') + '\\]\\(' + esc0NoVws('()') + '\\))(\\{' + esc0NoVws('{}') + '\\})?' + // Image.
-          '(\\]\\()(' + esc0NoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + esc0NoVws('{}') + '\\})?'
+          '(!\\[' + m0EscNoVws('[]') + '\\]\\(' + m0EscNoVws('()') + '\\))(\\{' + m0EscNoVws('{}') + '\\})?' + // Image.
+          '(\\]\\()(' + m0EscNoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + m0EscNoVws('{}') + '\\})?'
       }, { // Image by url (separately, so we can style it).
         token: ['text', 'string.other.image-alt', 'text', 'string.other.url.underline.image-url', 'string.other.image-title', 'text', 'markup.attributes'],
-        regex: '(!\\[)(' + esc0NoVws('[]') + ')(\\]\\()(' + esc0NoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + esc0NoVws('{}') + '\\})?'
+        regex: '(!\\[)(' + m0EscNoVws('[]') + ')(\\]\\()(' + m0EscNoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + m0EscNoVws('{}') + '\\})?'
       }, { // Link by url w/o image (separately, so we can style it).
         token: ['text', 'string.other.link-text', 'text', 'string.other.url.underline.link-url', 'string.other.link-title', 'text', 'markup.attributes'],
-        regex: '(\\[)(' + esc0NoVws('[]') + ')(\\]\\()(' + esc0NoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + esc0NoVws('{}') + '\\})?'
+        regex: '(\\[)(' + m0EscNoVws('[]') + ')(\\]\\()(' + m0EscNoVws('()', true) + ')([' + h + ']*"[^' + v + '"]*"[' + h + ']*)?(\\))(\\{' + m0EscNoVws('{}') + '\\})?'
       }, { // strong `**` or `__`.
         token: 'markup.strong',
         regex: '([*]{2}|[_]{2}(?=[^' + s + ']))[^' + v + ']*?[^' + s + '][*_]*\\1'
@@ -15295,7 +15296,7 @@ define("ace/mode/markdown_highlight_rules",["require","exports","module","ace/li
         next: 'start' // Escape.
       }, {
         token: ['text', 'markup.attributes'],
-        regex: '([' + h + ']+)(\\{' + esc0NoVws('{}') + '\\})(?=[' + h + ']*$)',
+        regex: '([' + h + ']+)(\\{' + m0EscNoVws('{}') + '\\})(?=[' + h + ']*$)',
       }, {
         include: 'basic'
       }, {
@@ -15554,9 +15555,6 @@ define("ace/mode/markdown",["require","exports","module","ace/lib/oop","ace/lib/
   var MarkdownHighlightRules = require('./markdown_highlight_rules').MarkdownHighlightRules;
   var MarkdownBehaviour = require('./behaviour/markdown').MarkdownBehaviour;
   var HtmlCompletions = require('./html_completions').HtmlCompletions;
-  var v = '\\v\\n\\r\\f\\u0085\\u2028-\\u2029';
-  var h = ' \\t\\ufeff\\u00a0\\u1680\\u180e\\u2000-\\u200a\\u202f\\u205f\\u3000';
-  var s = '\\s'; // Both horizontal and vertical whitespace.
 
   var voidElements = ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'keygen', 'link', 'meta', 'menuitem', 'param', 'source', 'track', 'wbr'];
 
