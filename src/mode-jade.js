@@ -3687,6 +3687,9 @@ define("ace/mode/markdown_highlight_rules",["require","exports","module","ace/li
       }, { // Link by reference.
         token: ['text.md', 'string.other.link-text.md', 'text.md', 'constant.reference.link-id.md', 'text.md'],
         regex: '(\\[)(' + m0EscNoVws('[]') + ')(\\][' + h + ']*\\[)(' + m0EscNoVws('[]') + ')(\\])'
+      }, { // strike via `~~`.
+        token: ['text.md', 'markup.strike.md', 'text.md'],
+        regex: '(~{2}(?![' + s + ']))([^~]*[^' + s + '~])(~{2})'
       }, { // strong `**` or `__`.
         token: 'markup.strong.md',
         regex: '([*]{2}|[_]{2}(?=[^' + s + ']))[^' + v + ']*?[^' + s + '][*_]*\\1'
