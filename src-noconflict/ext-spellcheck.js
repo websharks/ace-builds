@@ -698,7 +698,7 @@ ace.define("ace/lib/typo",["require","exports","module","fs"], function(require,
 	exports.Typo = Typo;
 });
 
-ace.define("ace/ext/spellcheck/er",["require","exports","module","ace/lib/dom","ace/range","ace/unicode","ace/lib/typo"], function(require, exports, module) {
+ace.define("ace/ext/spellcheck/er",["require","exports","module","ace/lib/dom","ace/range","ace/unicode","ace/lib/typo","require","exports"], function(require, exports, module) {
 var $build_deps$ = {require: require, exports: exports, module: module};
 exports = undefined; module = undefined;
 function define(name, deps, m) {
@@ -715,15 +715,17 @@ function define(name, deps, m) {
        m.apply($build_deps$.module, deps.map(function(n){return $build_deps$[n] || require(n)})) : m
    if (ret != undefined) $build_deps$.module.exports = ret;
 }
-define.amd = true;(function (dependencies, factory) {
-    if (typeof module === 'object' && typeof module.exports === 'object') {
-        var v = factory(require, exports); if (v !== undefined) module.exports = v;
+define.amd = true;(function (factory) {
+    if (typeof module === "object" && typeof module.exports === "object") {
+        var v = factory(require, exports);
+        if (v !== undefined) module.exports = v;
     }
-    else if (typeof define === 'function' && define.amd) {
-        define(dependencies, factory);
+    else if (typeof define === "function" && define.amd) {
+        define(["require", "exports"], factory);
     }
-})(["require", "exports"], function (require, exports) {
+})(function (require, exports) {
     "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
     var dom = require('../../lib/dom');
     var Range = require('ace/range').Range;
     var Unicode = require('../../unicode').packages;
@@ -63054,7 +63056,7 @@ zymurgy/S\n\
     var styles = ".ace_marker-layer .ace_typo{border-radius:0;position:absolute;border-bottom:1px solid red}";
     ;
     var SpellChecker = (function () {
-        function SpellChecker(editor) {
+        function SpellChecker(editor /* Ace.Editor */) {
             var _this = this;
             this.dotRepeat = function (m) {
                 return m ? _this.dot.repeat(m.length) : '';
@@ -63071,29 +63073,29 @@ zymurgy/S\n\
             this._escRegExp1 = /[.*+?^${}()|[\]\\]/g;
             this._escRegExp2 = /[.*+?^${}()|[\]\\\-]/g;
             this.markers = { typos: [] };
-            this.ed = editor;
+            this.ed = editor; // Ace.Editor
             this.isChecking = false, this.shouldStopChecking = false;
             dom.importCssString(styles, 'ace_spellcheck');
             this.dictionary = new Typo('en_US', TypoAff, TypoDic);
-            this.dot = '.';
-            this.u = Unicode;
+            this.dot = '.'; // Filler.
+            this.u = Unicode; // General cats.
             this.v = '\\v\\n\\r\\f\\u0085\\u2028-\\u2029';
             this.h = ' \\t\\ufeff\\u00a0\\u1680\\u180e\\u2000-\\u200a\\u202f\\u205f\\u3000';
-            this.s = '\\s';
+            this.s = '\\s'; // Both horizontal and vertical whitespace.
             this.wordChars = this.u.L + this.u.M + this.u.N + this.u.Pd + this.u.Pc + '\'';
-            this.regexCache();
-            var delay = 500;
+            this.regexCache(); // Cache regex.
+            var delay = 500; // Spell check quickly.
             this.checker = this.debounce(this.check, delay);
             this.ed.on('changeSession', function (e) {
                 _this.ed.session.on('change', _this.checker),
-                    _this.check();
+                    _this.check(); // First time.
             });
         }
         SpellChecker.prototype.regexCache = function () {
             var dot = this.dot;
             var u = this.u, h = this.h, v = this.v, s = this.s, wordChars = this.wordChars;
             var escRegex = this.escRegex.bind(this), m0EscNoVws = this.m0EscNoVws.bind(this);
-            var sw = 'a';
+            var sw = 'a'; // Stop words.
             sw += '|about|all|an|any|are|as|at';
             sw += '|be|because|but|by';
             sw += '|came|can|can\'t|com|come|could|css';
@@ -63146,60 +63148,60 @@ zymurgy/S\n\
                 if (forceNew) {
                     this.shouldStopChecking = true,
                         setTimeout(function () { return _this.check(true); }, 50);
-                }
-                return;
+                } // Stop the existing process and try again.
+                return; // Wait for completion.
             }
-            this.isChecking = true;
+            this.isChecking = true; // Flag.
             this.markers.typos.forEach(function (marker) {
                 _this.ed.session.removeMarker(marker);
-            });
-            this.markers.typos = [];
-            var document = this.ed.session.getDocument(), inFencedCodeBlock = '';
+            }); // Clear any existing/previous typo markers.
+            this.markers.typos = []; // Empty array.
+            var document = this.ed.session.getDocument(), inFencedCodeBlock = ''; // Initialize.
             document.getAllLines().forEach(function (line, row) {
                 if (_this.shouldStopChecking) {
                     return _this.shouldStopChecking = false;
-                }
+                } // Breaks the loop and resets the flags.
                 var cleanLine = _this.trim(line);
                 if (!cleanLine.length)
                     return;
                 if (inFencedCodeBlock === '`') {
                     if (_this.regexDetectEndOfBacktickFencedCodeBlock.test(cleanLine))
                         inFencedCodeBlock = '';
-                    return;
+                    return; // Bypass.
                 }
                 else if (inFencedCodeBlock === '~') {
                     if (_this.regexDetectEndOfTildeFencedCodeBlock.test(cleanLine))
                         inFencedCodeBlock = '';
-                    return;
+                    return; // Bypass.
                 }
                 else if (_this.regexDetectStartOfFencedCodeBlock.test(cleanLine)) {
                     inFencedCodeBlock = cleanLine[0];
-                    return;
+                    return; // Bypass code blocks.
                 }
                 else if (_this.regexIsLineWithAllWsDashesConnectors.test(cleanLine)) {
-                    return;
+                    return; // Ignore lines w/ only dashes/connectors.
                 }
                 else if (_this.regexIsLineWithNoWordChars.test(cleanLine)) {
-                    return;
+                    return; // Ignore lines w/o word chars.
                 }
                 _this.checkLineForTypos(line).forEach(function (typo) {
                     var range = new Range(row, typo.fromColumn, row, typo.toColumn);
                     _this.markers.typos.push(_this.ed.session.addMarker(range, 'ace_typo', 'typo', true));
                 });
-            });
+            }); // Flag as done.
             this.isChecking = false;
         };
         SpellChecker.prototype.checkLineForTypos = function (line) {
             var _this = this;
             line = this.sanitizeStripFillLine(line);
             var words = line.split(this.regexNonWordCharsSplitCapture);
-            var isSep = false;
+            var isSep = false; // Initialize sep tracking.
             var columns = 0, typos = [];
             words.forEach(function (wrdSep) {
                 if (isSep) {
                     isSep = !isSep;
                     columns += wrdSep.length;
-                    return;
+                    return; // Continue.
                 }
                 else
                     isSep = !isSep;
@@ -63210,38 +63212,38 @@ zymurgy/S\n\
                 var bytes = word.length;
                 var chars = a.from(word).length;
                 if (chars < 2) {
-                    return;
+                    return; // Skip < 2.
                 }
                 else if (_this.isNumeric(word)) {
-                    return;
+                    return; // Skip numerics.
                 }
                 else if (_this.regexHasDashOrConnector.test(word)) {
-                    return;
+                    return; // Skip vars/hyphens.
                 }
                 else if (_this.regexHasEnUsMixedMultiCase.test(word)) {
-                    return;
+                    return; // Skip dashed/hyphenated/connected words.
                 }
                 else if (_this.regexIsAStopWord.test(word)) {
-                    return;
+                    return; // Skip known/common stopwords.
                 }
                 else if (_this.regexIsAllNumericWord.test(word)) {
-                    return;
+                    return; // Skip words w/ only number chars.
                 }
                 else if (_this.regexIsAllUppercaseWord.test(word)) {
-                    return;
+                    return; // Skip acronyms or anything in all caps.
                 }
-                var lrO = [0, 0];
+                var lrO = [0, 0]; // Left, right offsets.
                 if (word[0] === "'") {
-                    lrO[0] = 1;
-                    word = word.substr(1);
+                    lrO[0] = 1; // Don't count leading quote.
+                    word = word.substr(1); // Check word w/o leading quote.
                 }
                 if (word[word.length - 1] === "'") {
-                    lrO[1] = -1;
-                    word = word.slice(0, -1);
+                    lrO[1] = -1; // Don't count trailing quote.
+                    word = word.slice(0, -1); // Check word w/o trailing quote.
                 }
                 if (word && !_this.dictionary.check(word)) {
                     typos.push({ word: word, fromColumn: column + lrO[0], toColumn: column + bytes + lrO[1] });
-                }
+                } // At a specific row, from a specific column, to a specific column.
             });
             return typos;
         };
@@ -63256,15 +63258,15 @@ zymurgy/S\n\
             line = line.replace(this.regexToStripFillUrls, this.dotRepeat);
             line = line.replace(this.regexToStripFillAtDotWords, this.dotRepeat);
             line = line.replace(this.regexToStripAtMentions, this.dotRepeat);
-            return line;
+            return line; // Stripped and filled-in now.
         };
         SpellChecker.prototype.escRegex = function (str, inCharClass) {
             return str.replace(inCharClass ? this._escRegExp2 : this._escRegExp1, '\\$&');
-        };
+        }; // Escapes regex meta-characters.
         SpellChecker.prototype.m0EscNoVws = function (escapableChars, ungreedy) {
             escapableChars = this.escRegex(escapableChars, true);
             return '(?:[^' + this.v + escapableChars + '\\\\]|\\\\[' + escapableChars + '])*' + (ungreedy ? '?' : '');
-        };
+        }; // An escaped (possibly 0-byte length) string w/o vertical whitespace.
         SpellChecker.prototype.trim = function (str) {
             return str.replace(this.regexTrim, '');
         };
@@ -63277,15 +63279,15 @@ zymurgy/S\n\
             return function () {
                 clearTimeout(timeout),
                     timeout = setTimeout(later, delay);
-            };
+            }; // Optimized for spell checking.
         };
         SpellChecker.prototype.destroy = function () {
             var _this = this;
             this.ed.session.off('change', this.checker);
             this.markers.typos.forEach(function (marker) {
                 _this.ed.session.removeMarker(marker);
-            });
-            this.markers.typos = [];
+            }); // Clear any existing/previous typo markers.
+            this.markers.typos = []; // Empty array.
             this.shouldStopChecking = true;
         };
         return SpellChecker;
